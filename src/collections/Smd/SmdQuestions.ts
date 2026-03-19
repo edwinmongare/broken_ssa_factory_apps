@@ -3,75 +3,67 @@ import { BeforeChangeHook } from "payload/dist/collections/config/types";
 import { Access, CollectionConfig } from "payload/types";
 
 /* -------------------------------------------------------------------------- */
-/*                               Helper types                                 */
+/*  HIGH-risk rules: if a question is answered with its triggerValue → HIGH   */
 /* -------------------------------------------------------------------------- */
 
-type QuestionScores = {
-  Q1: number;
-  Q2: number;
-  Q3: number;
-  Q4: number;
-  Q5: number;
-  Q6: number;
-  Q7: number;
-  Q8: number;
-  Q9: number;
-  Q10: number;
-  Q11: number;
-  Q12: number;
-  Q13: number;
-  Q14: number;
-  Q15: number;
-  Q16: number;
-  Q17: number;
-  Q18: number;
+const HIGH_RISK_RULES: Record<string, string> = {
+  Q3:  "no",  // Not everyone wearing proper PPE
+  Q4:  "yes", // Safety procedures/guards bypassed
+  Q5:  "no",  // Lighting inadequate for safe work
+  Q6:  "yes", // Poor ventilation, dust, or fumes present
+  Q8:  "yes", // Exposed/untidy electrical cables
+  Q9:  "yes", // Sockets overloaded or damaged
+  Q10: "yes", // Extension cords unmanaged across walkways
+  Q11: "yes", // Machine with missing/broken guard or faulty interlock
+  Q12: "yes", // Clutter, oil, or debris on floor
+  Q14: "no",  // Materials stored unsafely / blocking fire exits
+  Q15: "no",  // Pallets/goods stacked unsafely or leaning
+  Q16: "yes", // Preventive maintenance currently ongoing
+  Q17: "no",  // Area not cordoned or LOTO not applied during maintenance
+  Q18: "no",  // Maintenance procedures/safety protocols not followed
+  Q19: "yes", // Ongoing CO/NPI activity
+  Q28: "no",  // Fire extinguishers/exits not accessible or clearly marked
 };
 
-interface ModifiedData {
-  Trigger: string;
-  reasonForScore?: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                         Optional total-score helper                        */
-/* -------------------------------------------------------------------------- */
-
-const calculateTotalScore = (data: Record<string, any>): number => {
-  let totalScore = 0;
-
-  const questionScores: QuestionScores = {
-    Q1: 2,
-    Q2: 2,
-    Q3: 7,
-    Q4: 2,
-    Q5: 4,
-    Q6: 4,
-    Q7: 7,
-    Q8: 2,
-    Q9: 7,
-    Q10: 7,
-    Q11: 4,
-    Q12: 7,
-    Q13: 7,
-    Q14: 7,
-    Q15: 7,
-    Q16: 7,
-    Q17: 4,
-    Q18: 4,
-  };
-
-  Object.keys(data).forEach((questionKey) => {
-    const q = questionKey as keyof QuestionScores;
-    if (data[q] === "yes" && questionScores[q]) {
-      totalScore += questionScores[q];
-    }
-  });
-
-  return totalScore;
+const HIGH_RISK_DESCRIPTIONS: Record<string, string> = {
+  Q3:  "PPE not being worn properly by all staff (ear plugs, boots, etc.)",
+  Q4:  "Safety procedures or guards have been bypassed",
+  Q5:  "Lighting is inadequate for safe work",
+  Q6:  "Poor ventilation, dust, or fumes present in the area",
+  Q8:  "Exposed or untidy electrical cables present",
+  Q9:  "Sockets are overloaded or damaged",
+  Q10: "Extension cords unmanaged across walkways or work areas",
+  Q11: "Machine with missing/broken guard or faulty interlock running",
+  Q12: "Clutter, oil, or debris found on the floor",
+  Q14: "Materials stored unsafely or blocking fire exits",
+  Q15: "Pallets or goods stacked unsafely or leaning",
+  Q16: "Preventive maintenance is currently ongoing without sufficient isolation",
+  Q17: "Area not cordoned or LOTO not applied by trained staff during maintenance",
+  Q18: "Maintenance procedures and safety protocols not being followed",
+  Q19: "Ongoing CO/NPI activity in the area",
+  Q28: "Fire extinguishers or exits not accessible or not clearly marked",
 };
 
 /* -------------------------------------------------------------------------- */
-/*                            Access & hook helpers                           */
+/*  Non-high rules: each triggered item adds 2 pts toward medium/low score    */
+/* -------------------------------------------------------------------------- */
+
+const NON_HIGH_RISK_RULES: Record<string, string> = {
+  Q1:  "yes", // Team staffing below required standard
+  Q2:  "yes", // Staff with <6 weeks machine operation experience
+  Q7:  "yes", // Temperature/humidity too high
+  Q13: "yes", // Obstructions in walkways/gangways
+  Q20: "no",  // Written Risk Prediction NOT done before restart
+  Q21: "yes", // Serious injury this or last shift
+  Q22: "yes", // First aid case in last 7 days
+  Q23: "yes", // Work at height ongoing
+  Q24: "yes", // Construction/modification work near line
+  Q25: "yes", // High-level cleaning in progress
+  Q26: "yes", // Water leaks or exposed hot surfaces
+};
+
+/* -------------------------------------------------------------------------- */
+/*                           Access & hook helpers                            */
 /* -------------------------------------------------------------------------- */
 
 const isAdminOrHasAccessToImages =
@@ -80,12 +72,7 @@ const isAdminOrHasAccessToImages =
     const user = req.user as User | undefined;
     if (!user) return false;
     if (user.role === "admin") return true;
-
-    return {
-      country: {
-        equals: req.user.country,
-      },
-    };
+    return { country: { equals: req.user.country } };
   };
 
 const addUser: BeforeChangeHook = ({ req, data }) => {
@@ -99,27 +86,41 @@ const addFactory: BeforeChangeHook = ({ req, data }) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/*                     Trigger logic – Q8 “yes” → high only                  */
+/*                          Main trigger hook                                 */
 /* -------------------------------------------------------------------------- */
 
 const addTriggerAndUser: BeforeChangeHook = ({ data }) => {
-  // still compute the total score for reference/logging
-  const totalScore = calculateTotalScore(data);
-  const q8Answer = data.Q8 as string | undefined;
+  // Check for any HIGH-risk question triggered
+  const triggeredHighRisks: string[] = [];
+  for (const [q, triggerValue] of Object.entries(HIGH_RISK_RULES)) {
+    if (data[q] === triggerValue) {
+      triggeredHighRisks.push(HIGH_RISK_DESCRIPTIONS[q]);
+    }
+  }
 
-  const trigger = q8Answer === "yes" ? "high" : "low";
-  const reasonForScore =
-    q8Answer === "yes"
-      ? "Question 8 was answered with 'yes', automatically triggering HIGH."
-      : `Question 8 was answered with 'no', so trigger is LOW (total score = ${totalScore}).`;
+  // Calculate non-high score (2 pts each)
+  let nonHighScore = 0;
+  for (const [q, riskValue] of Object.entries(NON_HIGH_RISK_RULES)) {
+    if (data[q] === riskValue) {
+      nonHighScore += 2;
+    }
+  }
 
-  const newData: ModifiedData = {
-    ...data,
-    Trigger: trigger,
-    reasonForScore,
-  };
+  let trigger: string;
+  let reasonForScore: string;
 
-  return newData;
+  if (triggeredHighRisks.length > 0) {
+    trigger = "high";
+    reasonForScore = triggeredHighRisks.join("; ");
+  } else if (nonHighScore >= 4) {
+    trigger = "medium";
+    reasonForScore = `Medium risk detected — score ${nonHighScore} points from general safety observations`;
+  } else {
+    trigger = "low";
+    reasonForScore = "No critical safety issues detected during this inspection";
+  }
+
+  return { ...data, Trigger: trigger, reasonForScore };
 };
 
 const addUserToData: BeforeChangeHook = ({ req, data }) => {
@@ -128,7 +129,7 @@ const addUserToData: BeforeChangeHook = ({ req, data }) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/*                               Collection                                   */
+/*                              Collection                                    */
 /* -------------------------------------------------------------------------- */
 
 export const SmdQuestions: CollectionConfig = {
@@ -136,7 +137,7 @@ export const SmdQuestions: CollectionConfig = {
   admin: {
     hidden: ({ user }) => user.role !== "operator",
     useAsTitle: "SmdQuestions",
-    description: "SMD Inspection",
+    description: "SMD Safety Inspection",
   },
   hooks: {
     beforeChange: [addUser, addFactory, addTriggerAndUser, addUserToData],
@@ -167,247 +168,305 @@ export const SmdQuestions: CollectionConfig = {
       required: true,
       hasMany: true,
     },
-    /* ----------------------------- Questions Q1-Q18 ----------------------------- */
+
+    /* ── Team Staffing & Competence ── */
     {
       name: "Q1",
-      label: "Team Staffing < Standard (Get staff to fill the crew)",
+      label: "Team Staffing & Competence: Is current team staffing below required standard?",
       required: true,
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q2",
+      label: "Any staff with less than 6 weeks machine operation experience post-induction?",
       required: true,
-      label:
-        "Personnel less than 6 weeks of machine operation after formal induction training.",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Behavioral & PPE Compliance ── */
     {
       name: "Q3",
+      label: "⚠ Behavioral & PPE Compliance: Is everyone wearing proper PPE (ear plugs, boots, etc.)? [No = HIGH RISK]",
       required: true,
-      label: "Preventive Maintenance (CO, NPI, CPT and High level leadership tour)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q4",
+      label: "⚠ Has anyone bypassed safety procedures/guards? [Yes = HIGH RISK]",
       required: true,
-      label:
-        "Preventive Maintenance (Cordon the area, Apply LOTO only experienced personnel on the line)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Environmental & Ergonomic Concerns ── */
     {
       name: "Q5",
+      label: "⚠ Environmental & Ergonomic: Is lighting adequate for safe work? [No = HIGH RISK]",
       required: true,
-      label:
-        "Start up from down day. (Complete a Written Risk Prediction on start-up activities)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q6",
+      label: "⚠ Any poor ventilation, dust, or fumes present? [Yes = HIGH RISK]",
       required: true,
-      label:
-        "Corrective Maintenance (Apply plant standards and procedures …)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Temperature / Humidity ── */
     {
       name: "Q7",
+      label: "Temperature / Humidity: Is temperature/humidity too high?",
       required: true,
-      label:
-        "Obstruction on shop-floor gang-way (excess pallets or machinery on gangway)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Electrical Risks & Machine Safety ── */
     {
       name: "Q8",
+      label: "⚠ Electrical Risks & Machine Safety: Any exposed/untidy electrical cables? [Yes = HIGH RISK]",
       required: true,
-      label:
-        "Machine running with broken/missing guard or malfunctioning interlock",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q9",
+      label: "⚠ Are sockets overloaded or damaged? [Yes = HIGH RISK]",
       required: true,
-      label: "Open electric cabinets",
       type: "radio",
-      options: [
-        { label: "No", value: "no" },
-        { label: "Yes", value: "yes" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q10",
+      label: "⚠ Are extension cords unmanaged across walkways/work areas? [Yes = HIGH RISK]",
       required: true,
-      label: "Serious Injury on the site",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q11",
+      label: "⚠ Any machine with missing/broken guard or faulty interlock? [Yes = HIGH RISK]",
       required: true,
-      label: "1 First aid or more in the last 7 days",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Housekeeping Hazards ── */
     {
       name: "Q12",
+      label: "⚠ Housekeeping Hazards: Any clutter, oil, or debris on the floor? [Yes = HIGH RISK]",
       required: true,
-      label: "Confined space, Work at height",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Movement Hazards ── */
     {
       name: "Q13",
+      label: "Movement Hazards: Any obstructions (pallets, tools, equipment) in walkways/gangways?",
       required: true,
-      label:
-        "Steam leakages, Water leakage and Hot surface work",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q14",
+      label: "⚠ Are materials stored safely (not blocking fire exits)? [No = HIGH RISK]",
       required: true,
-      label: "High Temperature / Humidity",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q15",
+      label: "⚠ Are pallets/goods stacked safely (not leaning)? [No = HIGH RISK]",
       required: true,
-      label: "Construction Activity",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
+
+    /* ── Maintenance ── */
     {
       name: "Q16",
+      label: "⚠ Maintenance: Is preventive maintenance currently ongoing? [Yes = HIGH RISK]",
       required: true,
-      label: "High level cleaning",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
-      defaultValue: "yes",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q17",
+      label: "⚠ If maintenance ongoing — is area cordoned and LOTO applied by trained staff? [No = HIGH RISK]",
       required: true,
-      label: "FLT (Proper use of horn …)",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
     {
       name: "Q18",
+      label: "⚠ During maintenance — are procedures and safety protocols being followed? [No = HIGH RISK]",
       required: true,
-      label:
-        "CO, NPI, CPT and High level leadership tour",
       type: "radio",
-      options: [
-        { label: "Yes", value: "yes" },
-        { label: "No", value: "no" },
-      ],
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
       defaultValue: "yes",
       admin: { layout: "horizontal" },
     },
-    /* ------------------------------- Results -------------------------------- */
+    {
+      name: "Q19",
+      label: "⚠ Is there an ongoing CO/NPI activity? [Yes = HIGH RISK]",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Restart Procedures ── */
+    {
+      name: "Q20",
+      label: "Restart Procedures: After shutdown, was a Written Risk Prediction completed before restart?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "yes",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Health & Injury Incidents ── */
+    {
+      name: "Q21",
+      label: "Health & Injury: Any serious injury this or last shift?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+    {
+      name: "Q22",
+      label: "Any first aid case in the last 7 days on this line/area?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── High-Risk Work Activities ── */
+    {
+      name: "Q23",
+      label: "High-Risk Work: Any work at height currently ongoing?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+    {
+      name: "Q24",
+      label: "Any construction or modification work ongoing near this line?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+    {
+      name: "Q25",
+      label: "Is high-level cleaning currently in progress?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Leaks and Surface Hazards ── */
+    {
+      name: "Q26",
+      label: "Leaks & Surface Hazards: Any water leaks or exposed hot surfaces?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Leadership Presence ── */
+    {
+      name: "Q27",
+      label: "Leadership Presence: Is a leadership tour currently ongoing?",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "no",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Emergency Preparedness ── */
+    {
+      name: "Q28",
+      label: "⚠ Emergency Preparedness: Are fire extinguishers and exits accessible and clearly marked? [No = HIGH RISK]",
+      required: true,
+      type: "radio",
+      options: [{ label: "Yes", value: "yes" }, { label: "No", value: "no" }],
+      defaultValue: "yes",
+      admin: { layout: "horizontal" },
+    },
+
+    /* ── Results ── */
     {
       name: "Trigger",
       type: "text",
       label: "Trigger",
-      admin: {
-        condition: (data) => !!data.Trigger,
-      },
+      admin: { condition: (data) => !!data.Trigger },
     },
     {
       name: "reasonForScore",
-      type: "text",
-      label: "Enter reason for this score",
-      admin: {
-        condition: (data) => data.Trigger === "high",
-      },
+      type: "textarea",
+      label: "System Risk Reason",
+      admin: { condition: () => false }, // auto-generated, hidden from form
+    },
+    {
+      name: "inspectorNote",
+      type: "textarea",
+      label: "Inspector's Notes (Optional) — Describe any additional context for this risk level",
+      admin: { condition: (data) => !!data.Trigger },
     },
   ],
 };
