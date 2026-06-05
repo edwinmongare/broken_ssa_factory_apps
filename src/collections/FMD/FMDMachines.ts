@@ -29,7 +29,7 @@ export const FMDlINES: CollectionConfig = {
   admin: {
     useAsTitle: "FMD_Lines",
     description: "lines in FMD",
-    hidden: ({ user }) => user.role !== "superadmin" && user.role !== "clerk",
+    hidden: ({ user }) => user?.role !== "superadmin" && user?.role !== "clerk",
   },
 
   hooks: {
@@ -47,12 +47,12 @@ export const FMDlINES: CollectionConfig = {
     },
     //read: ({ req: { user } }) => user.role === "clerk", // Restrict create access to superadmin
     update: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     delete: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     // Restrict create access to superadmin
     create: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
   },
   fields: [
     {

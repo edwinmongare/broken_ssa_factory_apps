@@ -134,7 +134,7 @@ const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
 export const SmdQuestions: CollectionConfig = {
   slug: "SmdQuestions",
   admin: {
-    hidden: ({ user }) => user.role !== "operator",
+    hidden: ({ user }) => user?.role !== "operator",
     useAsTitle: "Trigger",
     description: "SMD Safety Inspection",
   },
@@ -147,9 +147,9 @@ export const SmdQuestions: CollectionConfig = {
       if (!req.user || !referer?.includes("smd")) return true;
       return await isAdminOrHasAccessToImages()({ req });
     },
-    update: ({ req: { user } }) => user.role === "operator",
-    delete: ({ req: { user } }) => user.role === "operator",
-    create: ({ req: { user } }) => user.role === "operator",
+    update: ({ req: { user } }) => user?.role === "operator",
+    delete: ({ req: { user } }) => user?.role === "operator",
+    create: ({ req: { user } }) => user?.role === "operator",
   },
   fields: [
     {

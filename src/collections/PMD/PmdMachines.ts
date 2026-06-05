@@ -29,7 +29,7 @@ export const PMDlINES: CollectionConfig = {
   admin: {
     useAsTitle: "pmd_lines",
     description: "lines in PMD",
-    hidden: ({ user }) => user.role !== "superadmin" && user.role !== "clerk",
+    hidden: ({ user }) => user?.role !== "superadmin" && user?.role !== "clerk",
   },
 
   hooks: {
@@ -46,12 +46,12 @@ export const PMDlINES: CollectionConfig = {
       return await isAdminOrHasAccessToImages()({ req });
     },
     update: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     delete: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     // Restrict create access to superadmin
     create: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
   },
   fields: [
     {

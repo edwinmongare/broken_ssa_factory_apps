@@ -110,7 +110,7 @@ const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
 export const ENGQualityQuestions: CollectionConfig = {
   slug: "Engineering_Quality_Inspection",
   admin: {
-    hidden: ({ user }) => user.role !== "operator",
+    hidden: ({ user }) => user?.role !== "operator",
     useAsTitle: "Trigger",
     description: "Engineering Quality Inspection",
   },
@@ -128,9 +128,9 @@ export const ENGQualityQuestions: CollectionConfig = {
       return await isAdminOrHasAccessToImages()({ req });
     },
     //read: ({ req: { user } }) => user.role === "clerk", // Restrict create access to superadmin
-    update: ({ req: { user } }) => user.role === "operator", // Restrict create access to superadmin
-    delete: ({ req: { user } }) => user.role === "operator", // Restrict create access to superadmin
-    create: ({ req: { user } }) => user.role === "operator", //  create access to superadmin
+    update: ({ req: { user } }) => user?.role === "operator", // Restrict create access to superadmin
+    delete: ({ req: { user } }) => user?.role === "operator", // Restrict create access to superadmin
+    create: ({ req: { user } }) => user?.role === "operator", //  create access to superadmin
   },
   fields: [
     {

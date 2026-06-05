@@ -29,7 +29,7 @@ export const SmdMachines: CollectionConfig = {
   admin: {
     useAsTitle: "smd_line_name",
     description: "Lines in SMD",
-    hidden: ({ user }) => user.role !== "superadmin" && user.role !== "clerk",
+    hidden: ({ user }) => user?.role !== "superadmin" && user?.role !== "clerk",
   },
 
   hooks: {
@@ -47,12 +47,12 @@ export const SmdMachines: CollectionConfig = {
     },
     //read: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
     update: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     delete: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
     // Restrict create access to superadmin
     create: ({ req: { user } }) =>
-      user.role === "superadmin" || user.role === "clerk", // Restrict create access to superadmin
+      user?.role === "superadmin" || user?.role === "clerk", // Restrict create access to superadmin
   },
   fields: [
     {

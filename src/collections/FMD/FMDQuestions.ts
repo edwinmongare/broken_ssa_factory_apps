@@ -132,7 +132,7 @@ const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
 export const FMDQuestions: CollectionConfig = {
   slug: "FMDQuestions",
   admin: {
-    hidden: ({ user }) => user.role !== "operator",
+    hidden: ({ user }) => user?.role !== "operator",
     useAsTitle: "Trigger",
     description: "FMD Safety Inspection",
   },
@@ -145,9 +145,9 @@ export const FMDQuestions: CollectionConfig = {
       if (!req.user || !referer?.includes("sell")) return true;
       return await isAdminOrHasAccessToImages()({ req });
     },
-    update: ({ req: { user } }) => user.role === "operator",
-    delete: ({ req: { user } }) => user.role === "operator",
-    create: ({ req: { user } }) => user.role === "operator",
+    update: ({ req: { user } }) => user?.role === "operator",
+    delete: ({ req: { user } }) => user?.role === "operator",
+    create: ({ req: { user } }) => user?.role === "operator",
   },
   fields: [
     {

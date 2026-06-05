@@ -114,7 +114,7 @@ export const SMDQualityQuestions: CollectionConfig = {
     plural: "SMD Quality Inspections",
   },
   admin: {
-    hidden: ({ user }) => user.role !== "operator",
+    hidden: ({ user }) => user?.role !== "operator",
     useAsTitle: "Trigger",
     description: "SMD Quality Inspection",
   },
@@ -132,9 +132,9 @@ export const SMDQualityQuestions: CollectionConfig = {
       return await isAdminOrHasAccessToImages()({ req });
     },
     //read: ({ req: { user } }) => user.role === "clerk", // Restrict create access to superadmin
-    update: ({ req: { user } }) => user.role === "operator", // Restrict create access to superadmin
-    delete: ({ req: { user } }) => user.role === "operator", // Restrict create access to superadmin
-    create: ({ req: { user } }) => user.role === "operator", // ict create access to superadmin
+    update: ({ req: { user } }) => user?.role === "operator", // Restrict create access to superadmin
+    delete: ({ req: { user } }) => user?.role === "operator", // Restrict create access to superadmin
+    create: ({ req: { user } }) => user?.role === "operator", // ict create access to superadmin
   },
   fields: [
     {

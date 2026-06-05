@@ -44,12 +44,17 @@ export const Users: CollectionConfig = {
         { label: "Clerk", value: "clerk" },
       ],
     },
-    // {
-    //   name: "factory_name",
-    //   type: "relationship",
-    //   relationTo: "factories",
-    //   required: true,
-    //   hasMany: false,
-    // },
+    {
+      name: "country",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "factory_name",
+      type: "relationship",
+      relationTo: "factories",
+      required: true,
+      hasMany: false,
+    },
   ],
 };
