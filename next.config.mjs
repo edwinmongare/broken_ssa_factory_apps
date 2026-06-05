@@ -1,5 +1,8 @@
+import { withPayload } from "@payloadcms/next/withPayload";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -11,4 +14,4 @@ const nextConfig = {
   pageExtensions: ["ts", "tsx"],
 };
 
-module.exports = nextConfig;
+export default withPayload(nextConfig);
