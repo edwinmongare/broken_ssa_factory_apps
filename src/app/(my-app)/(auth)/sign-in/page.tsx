@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { Label } from "../../../components/ui/labelTwo";
-import { Input } from "../../../components/ui/inputTwo";
-import { cn } from "../../../lib/utils";
+import { Label } from "@/components/ui/labelTwo";
+import { Input } from "@/components/ui/inputTwo";
+import { cn } from "@/lib/utils";
 
 import { IconArchive } from "@tabler/icons-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { AwesomeBg } from "../../../components/bglogin";
+import { AwesomeBg } from "@/components/bglogin";
 
 const Page = () => {
   const searchParams = useSearchParams();

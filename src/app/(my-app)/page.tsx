@@ -1,20 +1,7 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import Image from "next/image";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import {
-  GlowingStarsBackgroundCard,
-  GlowingStarsDescription,
-  GlowingStarsTitle,
-} from "@/components/ui/glowing-stars";
-import Page from "./(auth)/sign-in/page";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <>
-      <Page />
-    </>
-  );
+  redirect("/sign-in");
 }
 
 const Icon = () => {
