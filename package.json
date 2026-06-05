@@ -7,10 +7,10 @@
     "node": ">=24.0.0 <25"
   },
   "scripts": {
-    "dev": "next dev",
-    "devsafe": "rimraf .next && next dev",
+    "dev": "next dev -p 3001",
+    "devsafe": "rimraf .next && next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "next lint",
     "generate:types": "payload generate:types",
     "payload": "payload"
