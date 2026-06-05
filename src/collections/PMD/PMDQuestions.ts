@@ -133,7 +133,7 @@ export const PMDQuestions: CollectionConfig = {
   slug: "PMDQuestions",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "PMDQuestions",
+    useAsTitle: "Trigger",
     description: "PMD Safety Inspection",
   },
   hooks: {

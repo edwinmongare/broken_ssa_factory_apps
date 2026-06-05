@@ -133,7 +133,7 @@ export const FMDQuestions: CollectionConfig = {
   slug: "FMDQuestions",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "FMDQuestions",
+    useAsTitle: "Trigger",
     description: "FMD Safety Inspection",
   },
   hooks: {

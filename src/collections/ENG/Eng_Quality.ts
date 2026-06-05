@@ -111,7 +111,7 @@ export const ENGQualityQuestions: CollectionConfig = {
   slug: "Engineering_Quality_Inspection",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "Engineering Inspection",
+    useAsTitle: "Trigger",
     description: "Engineering Quality Inspection",
   },
   hooks: {

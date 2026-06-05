@@ -133,7 +133,7 @@ export const ENGQuestions: CollectionConfig = {
   slug: "ENGQuestions",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "ENGQuestions",
+    useAsTitle: "Trigger",
     description: "ENG Safety Inspection",
   },
   hooks: {

@@ -115,7 +115,7 @@ export const SMDQualityQuestions: CollectionConfig = {
   },
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "SMD Inspection",
+    useAsTitle: "Trigger",
     description: "SMD Quality Inspection",
   },
   hooks: {

@@ -111,7 +111,7 @@ export const PMDQualityQuestions: CollectionConfig = {
   slug: "PMD_Quality_Inspection",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "PMD Inspection",
+    useAsTitle: "Trigger",
     description: "PMD Quality Inspection",
   },
   hooks: {

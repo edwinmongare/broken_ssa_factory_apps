@@ -135,7 +135,7 @@ export const SmdQuestions: CollectionConfig = {
   slug: "SmdQuestions",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "SmdQuestions",
+    useAsTitle: "Trigger",
     description: "SMD Safety Inspection",
   },
   hooks: {

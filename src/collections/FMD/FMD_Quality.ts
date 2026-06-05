@@ -111,7 +111,7 @@ export const FMDQualityQuestions: CollectionConfig = {
   slug: "FMD_Quality_Inspection",
   admin: {
     hidden: ({ user }) => user.role !== "operator",
-    useAsTitle: "FMD Inspection",
+    useAsTitle: "Trigger",
     description: "FMD Quality Inspection",
   },
   hooks: {
