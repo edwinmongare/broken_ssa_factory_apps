@@ -1,6 +1,5 @@
-import { User } from "payload/dist/auth";
-import { BeforeChangeHook } from "payload/dist/collections/config/types";
-import { Access, CollectionConfig } from "payload/types";
+import type { Access, CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { User } from "@/payload-types";
 
 type QuestionScores = {
   Q1: number;
@@ -52,11 +51,11 @@ const isAdminOrHasAccessToImages =
     };
   };
 
-const addUser: BeforeChangeHook = ({ req, data }) => {
+const addUser: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, user: user?.id };
 };
-const addFactory: BeforeChangeHook = ({ req, data }) => {
+const addFactory: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, user: user?.factory_name };
 };
@@ -66,7 +65,7 @@ interface ModifiedData {
   reasonForScore?: string; // Make reasonForScore optional
 }
 
-const addTriggerAndUser: BeforeChangeHook = ({ data }) => {
+const addTriggerAndUser: CollectionBeforeChangeHook = ({ data }) => {
   const totalScore = calculateTotalScore(data);
 
   console.log("Total Score:", totalScore);
@@ -98,7 +97,7 @@ const addTriggerAndUser: BeforeChangeHook = ({ data }) => {
   return newData;
 };
 
-const addUserToData: BeforeChangeHook = ({ req, data }) => {
+const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   if (user) {
     // Add user ID to the data being changed

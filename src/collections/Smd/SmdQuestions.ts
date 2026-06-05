@@ -1,6 +1,5 @@
-import { User } from "payload/dist/auth";
-import { BeforeChangeHook } from "payload/dist/collections/config/types";
-import { Access, CollectionConfig } from "payload/types";
+import type { Access, CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { User } from "@/payload-types";
 
 /* -------------------------------------------------------------------------- */
 /*  HIGH-risk rules: if a question is answered with its triggerValue → HIGH   */
@@ -75,12 +74,12 @@ const isAdminOrHasAccessToImages =
     return { country: { equals: req.user.country } };
   };
 
-const addUser: BeforeChangeHook = ({ req, data }) => {
+const addUser: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, user: user?.id };
 };
 
-const addFactory: BeforeChangeHook = ({ req, data }) => {
+const addFactory: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, factory_name: user?.factory_name };
 };
@@ -89,7 +88,7 @@ const addFactory: BeforeChangeHook = ({ req, data }) => {
 /*                          Main trigger hook                                 */
 /* -------------------------------------------------------------------------- */
 
-const addTriggerAndUser: BeforeChangeHook = ({ data }) => {
+const addTriggerAndUser: CollectionBeforeChangeHook = ({ data }) => {
   // Check for any HIGH-risk question triggered
   const triggeredHighRisks: string[] = [];
   for (const [q, triggerValue] of Object.entries(HIGH_RISK_RULES)) {
@@ -123,7 +122,7 @@ const addTriggerAndUser: BeforeChangeHook = ({ data }) => {
   return { ...data, Trigger: trigger, reasonForScore };
 };
 
-const addUserToData: BeforeChangeHook = ({ req, data }) => {
+const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return user ? { ...data, user: user.id } : data;
 };

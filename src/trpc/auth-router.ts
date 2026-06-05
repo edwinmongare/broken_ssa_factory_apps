@@ -1,30 +1,22 @@
-import { AuthCredentialsValidator } from "../lib/validators/account-credentials-validator";
+import { AuthCredentialsValidator } from "@/lib/validators/account-credentials-validator";
 import { publicProcedure, router } from "./trpc";
-import { getPayloadClient } from "../get-payload";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { login } from "@payloadcms/next/auth";
+import config from "@payload-config";
 
 export const authRouter = router({
   signIn: publicProcedure
     .input(AuthCredentialsValidator)
-    .mutation(async ({ input, ctx }) => {
-      const { email, password } = input;
-      const { res } = ctx;
-
-      const payload = await getPayloadClient();
-
+    .mutation(async ({ input }) => {
       try {
-        await payload.login({
+        await login({
           collection: "users",
-          data: {
-            email,
-            password,
-          },
-          res,
+          config,
+          email: input.email,
+          password: input.password,
         });
-
         return { success: true };
-      } catch (err) {
+      } catch {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
     }),

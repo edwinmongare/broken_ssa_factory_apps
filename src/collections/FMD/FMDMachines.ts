@@ -1,6 +1,6 @@
-import { User } from "payload/dist/auth";
-import { BeforeChangeHook } from "payload/dist/collections/config/types";
-import { Access, CollectionConfig } from "payload/types";
+import type { Access, CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { User } from "@/payload-types";
+
 const isAdminOrHasAccessToImages =
   (): Access =>
   async ({ req }) => {
@@ -16,11 +16,11 @@ const isAdminOrHasAccessToImages =
     };
   };
 
-const addUser: BeforeChangeHook = ({ req, data }) => {
+const addUser: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, user: user?.id };
 };
-const addFactory: BeforeChangeHook = ({ req, data }) => {
+const addFactory: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
   return { ...data, user: user?.factory_name };
 };
