@@ -16,8 +16,8 @@ export const Users: CollectionConfig = {
     create: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
   },
   admin: {
-    hidden: ({ user }) => user.role !== "admin" && user.role !== "superadmin",
-    useAsTitle: "Create new users",
+    hidden: ({ user }) => user?.role !== "admin" && user?.role !== "superadmin",
+    useAsTitle: "email",
     description:
       "Create user as and admin,data clerk, operator and link the user to a factory",
   },
