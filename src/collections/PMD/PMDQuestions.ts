@@ -141,7 +141,7 @@ export const PMDQuestions: CollectionConfig = {
   },
   access: {
     read: async ({ req }) => {
-      const referer = req.headers.referer;
+      const referer = req.headers.get("referer");
       if (!req.user || !referer?.includes("sell")) return true;
       return await isAdminOrHasAccessToImages()({ req });
     },

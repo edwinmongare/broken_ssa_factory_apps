@@ -143,7 +143,7 @@ export const SmdQuestions: CollectionConfig = {
   },
   access: {
     read: async ({ req }) => {
-      const referer = req.headers.referer;
+      const referer = req.headers.get("referer");
       if (!req.user || !referer?.includes("smd")) return true;
       return await isAdminOrHasAccessToImages()({ req });
     },
