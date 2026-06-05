@@ -70,8 +70,8 @@ const isAdminOrHasAccessToImages =
   async ({ req }) => {
     const user = req.user as User | undefined;
     if (!user) return false;
-    if (user.role === "admin") return true;
-    return { country: { equals: req.user.country } };
+    if (user.role === "superadmin") return true;
+    return { country: { equals: user.country } };
   };
 
 const addUser: CollectionBeforeChangeHook = ({ req, data }) => {

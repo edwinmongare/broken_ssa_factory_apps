@@ -11,12 +11,12 @@ export const Users: CollectionConfig = {
   },
   access: {
     read: () => true, // Restrict create access to superadmin
-    update: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
-    delete: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
-    create: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
+    update: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
+    delete: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
+    create: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
   },
   admin: {
-    hidden: ({ user }) => user?.role !== "admin" && user?.role !== "superadmin",
+    hidden: ({ user }) => user?.role !== "superadmin",
     useAsTitle: "email",
     description:
       "Create user as and admin,data clerk, operator and link the user to a factory",
@@ -32,7 +32,7 @@ export const Users: CollectionConfig = {
 
     {
       name: "role",
-      defaultValue: "user",
+      defaultValue: "operator",
       required: true,
       admin: {
         condition: () => true,

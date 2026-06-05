@@ -7,11 +7,11 @@ const isAdminOrHasAccessToImages =
     const user = req.user as User | undefined;
 
     if (!user) return false;
-    if (user.role === "admin") return true;
+    if (user.role === "superadmin") return true;
 
     return {
       user: {
-        equals: req.user.id,
+        equals: user.id,
       },
     };
   };

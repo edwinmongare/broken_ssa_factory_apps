@@ -7,10 +7,10 @@ export const Factories: CollectionConfig = {
     description: "Factories in BAT",
   },
   access: {
-    read: ({ req: { user } }) => user.role === "superadmin",
-    update: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
-    delete: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
-    create: ({ req: { user } }) => user.role === "superadmin", // Restrict create access to superadmin
+    read: ({ req: { user } }) => user?.role === "superadmin",
+    update: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
+    delete: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
+    create: ({ req: { user } }) => user?.role === "superadmin", // Restrict create access to superadmin
   },
   fields: [
     {
