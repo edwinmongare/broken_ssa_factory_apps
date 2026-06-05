@@ -12,6 +12,11 @@ const nextConfig = {
     ],
   },
   pageExtensions: ["ts", "tsx"],
+  async redirects() {
+    return [
+      { source: "/", destination: "/sign-in", permanent: false },
+    ];
+  },
 };
 
 export default withPayload(nextConfig);
