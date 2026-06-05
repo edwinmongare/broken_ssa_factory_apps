@@ -6,7 +6,66 @@
  * and re-run `payload generate:types` to regenerate this file.
  */
 
+/**
+ * Supported timezones in IANA format.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supportedTimezones".
+ */
+export type SupportedTimezones =
+  | 'Pacific/Midway'
+  | 'Pacific/Niue'
+  | 'Pacific/Honolulu'
+  | 'Pacific/Rarotonga'
+  | 'America/Anchorage'
+  | 'Pacific/Gambier'
+  | 'America/Los_Angeles'
+  | 'America/Tijuana'
+  | 'America/Denver'
+  | 'America/Phoenix'
+  | 'America/Chicago'
+  | 'America/Guatemala'
+  | 'America/New_York'
+  | 'America/Bogota'
+  | 'America/Caracas'
+  | 'America/Santiago'
+  | 'America/Buenos_Aires'
+  | 'America/Sao_Paulo'
+  | 'Atlantic/South_Georgia'
+  | 'Atlantic/Azores'
+  | 'Atlantic/Cape_Verde'
+  | 'Europe/London'
+  | 'Europe/Berlin'
+  | 'Africa/Lagos'
+  | 'Europe/Athens'
+  | 'Africa/Cairo'
+  | 'Europe/Moscow'
+  | 'Asia/Riyadh'
+  | 'Asia/Dubai'
+  | 'Asia/Baku'
+  | 'Asia/Karachi'
+  | 'Asia/Tashkent'
+  | 'Asia/Calcutta'
+  | 'Asia/Dhaka'
+  | 'Asia/Almaty'
+  | 'Asia/Jakarta'
+  | 'Asia/Bangkok'
+  | 'Asia/Shanghai'
+  | 'Asia/Singapore'
+  | 'Asia/Tokyo'
+  | 'Asia/Seoul'
+  | 'Australia/Brisbane'
+  | 'Australia/Sydney'
+  | 'Pacific/Guam'
+  | 'Pacific/Noumea'
+  | 'Pacific/Auckland'
+  | 'Pacific/Fiji';
+
 export interface Config {
+  auth: {
+    users: UserAuthOperations;
+  };
+  blocks: {};
   collections: {
     users: User;
     factories: Factory;
@@ -22,12 +81,69 @@ export interface Config {
     FMD_Quality_Inspection: FMD_Quality_Inspection;
     PMD_Quality_Inspection: PMD_Quality_Inspection;
     SMD_Quality_Inspection: SMD_Quality_Inspection;
+    'payload-kv': PayloadKv;
+    'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
+  collectionsJoins: {};
+  collectionsSelect: {
+    users: UsersSelect<false> | UsersSelect<true>;
+    factories: FactoriesSelect<false> | FactoriesSelect<true>;
+    smd_line_name: SmdLineNameSelect<false> | SmdLineNameSelect<true>;
+    SmdQuestions: SmdQuestionsSelect<false> | SmdQuestionsSelect<true>;
+    pmd_lines: PmdLinesSelect<false> | PmdLinesSelect<true>;
+    PMDQuestions: PMDQuestionsSelect<false> | PMDQuestionsSelect<true>;
+    eng_lines: EngLinesSelect<false> | EngLinesSelect<true>;
+    ENGQuestions: ENGQuestionsSelect<false> | ENGQuestionsSelect<true>;
+    FMD_Lines: FMD_LinesSelect<false> | FMD_LinesSelect<true>;
+    FMDQuestions: FMDQuestionsSelect<false> | FMDQuestionsSelect<true>;
+    Engineering_Quality_Inspection: Engineering_Quality_InspectionSelect<false> | Engineering_Quality_InspectionSelect<true>;
+    FMD_Quality_Inspection: FMD_Quality_InspectionSelect<false> | FMD_Quality_InspectionSelect<true>;
+    PMD_Quality_Inspection: PMD_Quality_InspectionSelect<false> | PMD_Quality_InspectionSelect<true>;
+    SMD_Quality_Inspection: SMD_Quality_InspectionSelect<false> | SMD_Quality_InspectionSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
+    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
+    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+  };
+  db: {
+    defaultIDType: string;
+  };
+  fallbackLocale: null;
   globals: {};
+  globalsSelect: {};
+  locale: null;
+  widgets: {
+    collections: CollectionsWidget;
+  };
+  user: User;
+  jobs: {
+    tasks: unknown;
+    workflows: unknown;
+  };
+}
+export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
 }
 /**
+ * Create user as and admin,data clerk, operator and link the user to a factory
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -44,9 +160,19 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  password: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
+ * Factories in BAT
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "factories".
  */
@@ -58,6 +184,8 @@ export interface Factory {
   createdAt: string;
 }
 /**
+ * Lines in SMD
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "smd_line_name".
  */
@@ -69,6 +197,8 @@ export interface SmdLineName {
   createdAt: string;
 }
 /**
+ * SMD Safety Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "SmdQuestions".
  */
@@ -84,7 +214,7 @@ export interface SmdQuestion {
   Q6: 'yes' | 'no';
   Q7: 'yes' | 'no';
   Q8: 'yes' | 'no';
-  Q9: 'no' | 'yes';
+  Q9: 'yes' | 'no';
   Q10: 'yes' | 'no';
   Q11: 'yes' | 'no';
   Q12: 'yes' | 'no';
@@ -94,12 +224,25 @@ export interface SmdQuestion {
   Q16: 'yes' | 'no';
   Q17: 'yes' | 'no';
   Q18: 'yes' | 'no';
+  Q19: 'yes' | 'no';
+  Q20: 'yes' | 'no';
+  Q21: 'yes' | 'no';
+  Q22: 'yes' | 'no';
+  Q23: 'yes' | 'no';
+  Q24: 'yes' | 'no';
+  Q25: 'yes' | 'no';
+  Q26: 'yes' | 'no';
+  Q27: 'yes' | 'no';
+  Q28: 'yes' | 'no';
   Trigger?: string | null;
   reasonForScore?: string | null;
+  inspectorNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * lines in PMD
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pmd_lines".
  */
@@ -111,6 +254,8 @@ export interface PmdLine {
   createdAt: string;
 }
 /**
+ * PMD Safety Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "PMDQuestions".
  */
@@ -126,7 +271,7 @@ export interface PMDQuestion {
   Q6: 'yes' | 'no';
   Q7: 'yes' | 'no';
   Q8: 'yes' | 'no';
-  Q9: 'no' | 'yes';
+  Q9: 'yes' | 'no';
   Q10: 'yes' | 'no';
   Q11: 'yes' | 'no';
   Q12: 'yes' | 'no';
@@ -136,12 +281,25 @@ export interface PMDQuestion {
   Q16: 'yes' | 'no';
   Q17: 'yes' | 'no';
   Q18: 'yes' | 'no';
+  Q19: 'yes' | 'no';
+  Q20: 'yes' | 'no';
+  Q21: 'yes' | 'no';
+  Q22: 'yes' | 'no';
+  Q23: 'yes' | 'no';
+  Q24: 'yes' | 'no';
+  Q25: 'yes' | 'no';
+  Q26: 'yes' | 'no';
+  Q27: 'yes' | 'no';
+  Q28: 'yes' | 'no';
   Trigger?: string | null;
   reasonForScore?: string | null;
+  inspectorNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * lines in Engineering
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "eng_lines".
  */
@@ -153,6 +311,8 @@ export interface EngLine {
   createdAt: string;
 }
 /**
+ * ENG Safety Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ENGQuestions".
  */
@@ -168,7 +328,7 @@ export interface ENGQuestion {
   Q6: 'yes' | 'no';
   Q7: 'yes' | 'no';
   Q8: 'yes' | 'no';
-  Q9: 'no' | 'yes';
+  Q9: 'yes' | 'no';
   Q10: 'yes' | 'no';
   Q11: 'yes' | 'no';
   Q12: 'yes' | 'no';
@@ -178,12 +338,25 @@ export interface ENGQuestion {
   Q16: 'yes' | 'no';
   Q17: 'yes' | 'no';
   Q18: 'yes' | 'no';
+  Q19: 'yes' | 'no';
+  Q20: 'yes' | 'no';
+  Q21: 'yes' | 'no';
+  Q22: 'yes' | 'no';
+  Q23: 'yes' | 'no';
+  Q24: 'yes' | 'no';
+  Q25: 'yes' | 'no';
+  Q26: 'yes' | 'no';
+  Q27: 'yes' | 'no';
+  Q28: 'yes' | 'no';
   Trigger?: string | null;
   reasonForScore?: string | null;
+  inspectorNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * lines in FMD
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FMD_Lines".
  */
@@ -195,6 +368,8 @@ export interface FMD_Line {
   createdAt: string;
 }
 /**
+ * FMD Safety Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FMDQuestions".
  */
@@ -210,7 +385,7 @@ export interface FMDQuestion {
   Q6: 'yes' | 'no';
   Q7: 'yes' | 'no';
   Q8: 'yes' | 'no';
-  Q9: 'no' | 'yes';
+  Q9: 'yes' | 'no';
   Q10: 'yes' | 'no';
   Q11: 'yes' | 'no';
   Q12: 'yes' | 'no';
@@ -220,12 +395,25 @@ export interface FMDQuestion {
   Q16: 'yes' | 'no';
   Q17: 'yes' | 'no';
   Q18: 'yes' | 'no';
+  Q19: 'yes' | 'no';
+  Q20: 'yes' | 'no';
+  Q21: 'yes' | 'no';
+  Q22: 'yes' | 'no';
+  Q23: 'yes' | 'no';
+  Q24: 'yes' | 'no';
+  Q25: 'yes' | 'no';
+  Q26: 'yes' | 'no';
+  Q27: 'yes' | 'no';
+  Q28: 'yes' | 'no';
   Trigger?: string | null;
   reasonForScore?: string | null;
+  inspectorNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Engineering Quality Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "Engineering_Quality_Inspection".
  */
@@ -247,6 +435,8 @@ export interface Engineering_Quality_Inspection {
   createdAt: string;
 }
 /**
+ * FMD Quality Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FMD_Quality_Inspection".
  */
@@ -268,6 +458,8 @@ export interface FMD_Quality_Inspection {
   createdAt: string;
 }
 /**
+ * PMD Quality Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "PMD_Quality_Inspection".
  */
@@ -289,6 +481,8 @@ export interface PMD_Quality_Inspection {
   createdAt: string;
 }
 /**
+ * SMD Quality Inspection
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "SMD_Quality_Inspection".
  */
@@ -306,6 +500,94 @@ export interface SMD_Quality_Inspection {
   Q8: 'yes' | 'no';
   Trigger?: string | null;
   reasonForScore?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: string;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-locked-documents".
+ */
+export interface PayloadLockedDocument {
+  id: string;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null)
+    | ({
+        relationTo: 'factories';
+        value: string | Factory;
+      } | null)
+    | ({
+        relationTo: 'smd_line_name';
+        value: string | SmdLineName;
+      } | null)
+    | ({
+        relationTo: 'SmdQuestions';
+        value: string | SmdQuestion;
+      } | null)
+    | ({
+        relationTo: 'pmd_lines';
+        value: string | PmdLine;
+      } | null)
+    | ({
+        relationTo: 'PMDQuestions';
+        value: string | PMDQuestion;
+      } | null)
+    | ({
+        relationTo: 'eng_lines';
+        value: string | EngLine;
+      } | null)
+    | ({
+        relationTo: 'ENGQuestions';
+        value: string | ENGQuestion;
+      } | null)
+    | ({
+        relationTo: 'FMD_Lines';
+        value: string | FMD_Line;
+      } | null)
+    | ({
+        relationTo: 'FMDQuestions';
+        value: string | FMDQuestion;
+      } | null)
+    | ({
+        relationTo: 'Engineering_Quality_Inspection';
+        value: string | Engineering_Quality_Inspection;
+      } | null)
+    | ({
+        relationTo: 'FMD_Quality_Inspection';
+        value: string | FMD_Quality_Inspection;
+      } | null)
+    | ({
+        relationTo: 'PMD_Quality_Inspection';
+        value: string | PMD_Quality_Inspection;
+      } | null)
+    | ({
+        relationTo: 'SMD_Quality_Inspection';
+        value: string | SMD_Quality_Inspection;
+      } | null);
+  globalSlug?: string | null;
+  user: {
+    relationTo: 'users';
+    value: string | User;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -342,6 +624,381 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "factories_select".
+ */
+export interface FactoriesSelect<T extends boolean = true> {
+  factory_name?: T;
+  country?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "smd_line_name_select".
+ */
+export interface SmdLineNameSelect<T extends boolean = true> {
+  smd_line_name?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SmdQuestions_select".
+ */
+export interface SmdQuestionsSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Q9?: T;
+  Q10?: T;
+  Q11?: T;
+  Q12?: T;
+  Q13?: T;
+  Q14?: T;
+  Q15?: T;
+  Q16?: T;
+  Q17?: T;
+  Q18?: T;
+  Q19?: T;
+  Q20?: T;
+  Q21?: T;
+  Q22?: T;
+  Q23?: T;
+  Q24?: T;
+  Q25?: T;
+  Q26?: T;
+  Q27?: T;
+  Q28?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  inspectorNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pmd_lines_select".
+ */
+export interface PmdLinesSelect<T extends boolean = true> {
+  pmd_lines?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PMDQuestions_select".
+ */
+export interface PMDQuestionsSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Q9?: T;
+  Q10?: T;
+  Q11?: T;
+  Q12?: T;
+  Q13?: T;
+  Q14?: T;
+  Q15?: T;
+  Q16?: T;
+  Q17?: T;
+  Q18?: T;
+  Q19?: T;
+  Q20?: T;
+  Q21?: T;
+  Q22?: T;
+  Q23?: T;
+  Q24?: T;
+  Q25?: T;
+  Q26?: T;
+  Q27?: T;
+  Q28?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  inspectorNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "eng_lines_select".
+ */
+export interface EngLinesSelect<T extends boolean = true> {
+  eng_lines?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ENGQuestions_select".
+ */
+export interface ENGQuestionsSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Q9?: T;
+  Q10?: T;
+  Q11?: T;
+  Q12?: T;
+  Q13?: T;
+  Q14?: T;
+  Q15?: T;
+  Q16?: T;
+  Q17?: T;
+  Q18?: T;
+  Q19?: T;
+  Q20?: T;
+  Q21?: T;
+  Q22?: T;
+  Q23?: T;
+  Q24?: T;
+  Q25?: T;
+  Q26?: T;
+  Q27?: T;
+  Q28?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  inspectorNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FMD_Lines_select".
+ */
+export interface FMD_LinesSelect<T extends boolean = true> {
+  FMD_Lines?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FMDQuestions_select".
+ */
+export interface FMDQuestionsSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Q9?: T;
+  Q10?: T;
+  Q11?: T;
+  Q12?: T;
+  Q13?: T;
+  Q14?: T;
+  Q15?: T;
+  Q16?: T;
+  Q17?: T;
+  Q18?: T;
+  Q19?: T;
+  Q20?: T;
+  Q21?: T;
+  Q22?: T;
+  Q23?: T;
+  Q24?: T;
+  Q25?: T;
+  Q26?: T;
+  Q27?: T;
+  Q28?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  inspectorNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Engineering_Quality_Inspection_select".
+ */
+export interface Engineering_Quality_InspectionSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FMD_Quality_Inspection_select".
+ */
+export interface FMD_Quality_InspectionSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PMD_Quality_Inspection_select".
+ */
+export interface PMD_Quality_InspectionSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SMD_Quality_Inspection_select".
+ */
+export interface SMD_Quality_InspectionSelect<T extends boolean = true> {
+  user?: T;
+  Line?: T;
+  Q1?: T;
+  Q2?: T;
+  Q3?: T;
+  Q4?: T;
+  Q5?: T;
+  Q6?: T;
+  Q7?: T;
+  Q8?: T;
+  Trigger?: T;
+  reasonForScore?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-locked-documents_select".
+ */
+export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
+  document?: T;
+  globalSlug?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-preferences_select".
+ */
+export interface PayloadPreferencesSelect<T extends boolean = true> {
+  user?: T;
+  key?: T;
+  value?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-migrations_select".
+ */
+export interface PayloadMigrationsSelect<T extends boolean = true> {
+  name?: T;
+  batch?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collections_widget".
+ */
+export interface CollectionsWidget {
+  data?: {
+    [k: string]: unknown;
+  };
+  width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth".
+ */
+export interface Auth {
+  [k: string]: unknown;
 }
 
 
