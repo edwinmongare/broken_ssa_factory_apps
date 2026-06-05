@@ -54,9 +54,6 @@ export default buildConfig({
       },
     },
   },
-  rateLimit: {
-    max: 20000,
-  },
   editor: lexicalEditor({}),
   db: mongooseAdapter({
     url: process.env.MONGODB_URL || "",
