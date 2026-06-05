@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import UserAccountNav from "../components/UserAccountNav";
 
 const Navbar = async () => {
-  const nextCookies = cookies();
+  const nextCookies = await cookies();
   const { user } = await getServerSideUser(nextCookies);
 
   return (

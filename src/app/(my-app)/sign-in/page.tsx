@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { Suspense } from "react";
 import { Label } from "@/components/ui/labelTwo";
 import { Input } from "@/components/ui/inputTwo";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { AwesomeBg } from "@/components/bglogin";
 
-const Page = () => {
+const SignInForm = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const origin = searchParams.get("origin");
@@ -161,4 +161,9 @@ const LabelInputContainer = ({
     </>
   );
 };
+const Page = () => (
+  <Suspense fallback={null}>
+    <SignInForm />
+  </Suspense>
+);
 export default Page;
