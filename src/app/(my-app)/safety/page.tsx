@@ -8,14 +8,73 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  GlowingStarsBackgroundCard,
-  GlowingStarsDescription,
-  GlowingStarsTitle,
-} from "@/components/ui/glowing-stars";
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import Link from "next/link";
+import { getPayload } from "payload";
+import config from "@payload-config";
 
-const Page = () => {
+interface Inspection {
+  Trigger?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+const formatCreatedAt = (createdAt?: string): string => {
+  if (!createdAt) return "No update";
+  const date = new Date(createdAt);
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const Skeleton = ({ gradient, trigger }: { gradient: string; trigger: string }) => (
+  <div
+    className={`flex mt-2 justify-center items-center w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br ${gradient}`}
+  >
+    <div className="grid place-items-center text-white">{trigger}</div>
+  </div>
+);
+
+const renderSkeleton = (trigger: string) => {
+  let gradient: string;
+  let label = trigger;
+
+  switch (trigger) {
+    case "high":
+      gradient = "from-red-700 to-red-900";
+      break;
+    case "medium":
+      gradient = "bg-gradient-to-b from-yellow-500 to-yellow-500";
+      break;
+    case "low":
+      gradient = "from-green-700 to-green-900";
+      break;
+    default:
+      gradient = "from-gray-700 to-gray-900";
+      label = "No data recorded";
+      break;
+  }
+
+  return <Skeleton gradient={gradient} trigger={label} />;
+};
+
+const Page = async () => {
+  const payload = await getPayload({ config });
+
+  const { docs } = await payload.find({
+    collection: "ProcessingLineInspections",
+    limit: 1,
+    sort: "-updatedAt",
+  });
+
+  const inspection: Inspection | undefined = docs[0] as unknown as Inspection;
+  const trigger = inspection?.Trigger ?? "unknown";
+
   return (
     <>
       <Navbar />
@@ -30,48 +89,26 @@ const Page = () => {
             </Link>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Safety</BreadcrumbPage>
+              <BreadcrumbPage>Safety Screens</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex flex-wrap gap-5 py-10 antialiased justify-center">
-          <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/3 xl:w-1/3">
-            <Link href="/safety/processing-line">
-              <GlowingStarsBackgroundCard>
-                <GlowingStarsTitle>Processing Line</GlowingStarsTitle>
-                <div className="flex justify-between items-end">
-                  <GlowingStarsDescription>
-                    View latest safety status
-                  </GlowingStarsDescription>
-                  <div className="h-8 w-8 rounded-full bg-[hsla(0,0%,100%,.1)] flex items-center justify-center">
-                    <Icon />
-                  </div>
-                </div>
-              </GlowingStarsBackgroundCard>
-            </Link>
-          </div>
-        </div>
+        <BentoGrid className="max-w-full mx-auto mt-5">
+          <Link href="/safety/processing-line" className="h-full block">
+            <div className="h-full">
+              <BentoGridItem
+                title="Processing Line"
+                description={`Last Updated ${formatCreatedAt(inspection?.createdAt)}`}
+                header={renderSkeleton(trigger)}
+                className="shadow-xl max-g-full"
+              />
+            </div>
+          </Link>
+        </BentoGrid>
       </MaxWidthWrapper>
     </>
   );
 };
-
-const Icon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth="1.5"
-    stroke="currentColor"
-    className="h-4 w-4 text-white stroke-2"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
-    />
-  </svg>
-);
 
 export default Page;
