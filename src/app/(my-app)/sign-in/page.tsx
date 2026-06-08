@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { Label } from "@/components/ui/labelTwo";
 import { Input } from "@/components/ui/inputTwo";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ import {
   AuthCredentialsValidator,
   TAuthCredentialsValidator,
 } from "@/lib/validators/account-credentials-validator";
-import { trpc } from "@/trpc/client";
 import { ZodError } from "zod";
 import { toast } from "sonner";
 
@@ -24,6 +23,7 @@ const SignInForm = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const origin = searchParams.get("origin");
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -33,28 +33,29 @@ const SignInForm = () => {
     resolver: zodResolver(AuthCredentialsValidator),
   });
 
-  const { mutate: signIn, isPending: isLoading } = trpc.auth.signIn.useMutation({
-    onSuccess: async () => {
-      toast.success("Signed in successfully");
+  const onSubmit = async ({ email, password }: TAuthCredentialsValidator) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      router.refresh();
-
-      if (origin) {
-        router.push(`/${origin}`);
+      if (!res.ok) {
+        toast.error("Invalid email or password.");
         return;
       }
 
-      router.push("/Home");
-    },
-    onError: (err) => {
-      if (err.data?.code === "UNAUTHORIZED") {
-        toast.error("Invalid email or password.");
-      }
-    },
-  });
-
-  const onSubmit = ({ email, password }: TAuthCredentialsValidator) => {
-    signIn({ email, password });
+      toast.success("Signed in successfully");
+      router.refresh();
+      router.push(origin ? `/${origin}` : "/Home");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div
