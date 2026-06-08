@@ -54,7 +54,7 @@ export function EngViewQuality() {
   useEffect(() => {
     const fetchData = () => {
       fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/Engineering_Quality_Inspection/?limit=10000`
+        `/api/Engineering_Quality_Inspection/?limit=10000`
       )
         .then((response) => response.json())
         .then((apiData) => {

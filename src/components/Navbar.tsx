@@ -2,13 +2,15 @@ import Link from "next/link";
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import { Icons } from "./Icons";
 import { buttonVariants } from "./ui/button";
-import { getServerSideUser } from "@/lib/payload-utils";
-import { cookies } from "next/headers";
+import { headers as nextHeaders } from "next/headers";
+import { getPayload } from "payload";
+import config from "@payload-config";
 import UserAccountNav from "../components/UserAccountNav";
 
 const Navbar = async () => {
-  const nextCookies = await cookies();
-  const { user } = await getServerSideUser(nextCookies);
+  const headers = await nextHeaders();
+  const payload = await getPayload({ config });
+  const { user } = await payload.auth({ headers });
 
   return (
     <div className="bg-white sticky z-50 top-0 inset-x-0 h-16">

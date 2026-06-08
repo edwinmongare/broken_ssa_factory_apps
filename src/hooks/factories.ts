@@ -7,7 +7,7 @@ export const useFactory = () => {
   const getFactories = async () => {
     try {
       const req = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/factories`
+        `/api/factories`
       );
       const { docs } = await req.json();
 

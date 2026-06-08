@@ -53,7 +53,7 @@ export function FmdView() {
 
   useEffect(() => {
     const fetchData = () => {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/FMDQuestions/?limit=10000`)
+      fetch(`/api/FMDQuestions/?limit=10000`)
         .then((response) => response.json())
         .then((apiData) => {
           const uniqueLines = extractUniqueLines(apiData.docs);

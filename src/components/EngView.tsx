@@ -54,7 +54,7 @@ export function EngView() {
 
   useEffect(() => {
     const fetchData = () => {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/ENGQuestions/?limit=10000`)
+      fetch(`/api/ENGQuestions/?limit=10000`)
         .then((response) => response.json())
         .then((apiData) => {
           const uniqueLines = extractUniqueLines(apiData.docs);
