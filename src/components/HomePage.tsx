@@ -14,7 +14,6 @@ export default function HomePage() {
       <Navbar />
       <MaxWidthWrapper>
         <div className="flex flex-wrap gap-5 py-20 antialiased justify-center">
-          {/* First GlowingStarsBackgroundCard */}
           <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/3 xl:w-1/3">
             <Link href="/safety">
               <GlowingStarsBackgroundCard>
@@ -22,23 +21,6 @@ export default function HomePage() {
                 <div className="flex justify-between items-end">
                   <GlowingStarsDescription>
                     View current safety status
-                  </GlowingStarsDescription>
-                  <div className="h-8 w-8 rounded-full bg-[hsla(0,0%,100%,.1)] flex items-center justify-center">
-                    <Icon />
-                  </div>
-                </div>
-              </GlowingStarsBackgroundCard>
-            </Link>
-          </div>
-
-          {/* Second GlowingStarsBackgroundCard */}
-          <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/3 xl:w-1/3">
-            <Link href="/Quality">
-              <GlowingStarsBackgroundCard className="bg-[linear-gradient(110deg,#004F9F.60%,#00B1EB)]">
-                <GlowingStarsTitle>Quality Trigger</GlowingStarsTitle>
-                <div className="flex justify-between items-end">
-                  <GlowingStarsDescription>
-                    View current quality status
                   </GlowingStarsDescription>
                   <div className="h-8 w-8 rounded-full bg-[hsla(0,0%,100%,.1)] flex items-center justify-center">
                     <Icon />

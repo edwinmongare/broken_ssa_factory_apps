@@ -9,16 +9,6 @@ import { Users } from "./src/collections/Users";
 import { Factories } from "./src/collections/Factories";
 import { SmdMachines } from "./src/collections/Smd/SmdMachines";
 import { SmdQuestions } from "./src/collections/Smd/SmdQuestions";
-import { PMDlINES } from "./src/collections/PMD/PmdMachines";
-import { PMDQuestions } from "./src/collections/PMD/PMDQuestions";
-import { ENGQuestions } from "./src/collections/ENG/ENGQuestions";
-import { ENGlINES } from "./src/collections/ENG/ENGMachines";
-import { FMDlINES } from "./src/collections/FMD/FMDMachines";
-import { FMDQuestions } from "./src/collections/FMD/FMDQuestions";
-import { ENGQualityQuestions } from "./src/collections/ENG/Eng_Quality";
-import { FMDQualityQuestions } from "./src/collections/FMD/FMD_Quality";
-import { PMDQualityQuestions } from "./src/collections/PMD/PMD_Quality";
-import { SMDQualityQuestions } from "./src/collections/Smd/SMD_Quality";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,16 +22,6 @@ export default buildConfig({
     Factories,
     SmdMachines,
     SmdQuestions,
-    PMDlINES,
-    PMDQuestions,
-    ENGlINES,
-    ENGQuestions,
-    FMDlINES,
-    FMDQuestions,
-    ENGQualityQuestions,
-    FMDQualityQuestions,
-    PMDQualityQuestions,
-    SMDQualityQuestions,
   ],
   routes: {
     admin: "/admin",
