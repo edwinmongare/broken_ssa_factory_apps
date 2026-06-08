@@ -7,8 +7,7 @@ import sharp from "sharp";
 
 import { Users } from "./src/collections/Users";
 import { Factories } from "./src/collections/Factories";
-import { SmdMachines } from "./src/collections/Smd/SmdMachines";
-import { SmdQuestions } from "./src/collections/Smd/SmdQuestions";
+import { ProcessingLineInspections } from "./src/collections/ProcessingLine";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,8 +19,7 @@ export default buildConfig({
   collections: [
     Users,
     Factories,
-    SmdMachines,
-    SmdQuestions,
+    ProcessingLineInspections,
   ],
   routes: {
     admin: "/admin",

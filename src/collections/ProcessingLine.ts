@@ -6,22 +6,22 @@ import type { User } from "@/payload-types";
 /* -------------------------------------------------------------------------- */
 
 const HIGH_RISK_RULES: Record<string, string> = {
-  Q3:  "no",  // Not everyone wearing proper PPE
-  Q4:  "yes", // Safety procedures/guards bypassed
-  Q5:  "no",  // Lighting inadequate for safe work
-  Q6:  "yes", // Poor ventilation, dust, or fumes present
-  Q8:  "yes", // Exposed/untidy electrical cables
-  Q9:  "yes", // Sockets overloaded or damaged
-  Q10: "yes", // Extension cords unmanaged across walkways
-  Q11: "yes", // Machine with missing/broken guard or faulty interlock
-  Q12: "yes", // Clutter, oil, or debris on floor
-  Q14: "no",  // Materials stored unsafely / blocking fire exits
-  Q15: "no",  // Pallets/goods stacked unsafely or leaning
-  Q16: "yes", // Preventive maintenance currently ongoing
-  Q17: "no",  // Area not cordoned or LOTO not applied during maintenance
-  Q18: "no",  // Maintenance procedures/safety protocols not followed
-  Q19: "yes", // Ongoing CO/NPI activity
-  Q28: "no",  // Fire extinguishers/exits not accessible or clearly marked
+  Q3:  "no",
+  Q4:  "yes",
+  Q5:  "no",
+  Q6:  "yes",
+  Q8:  "yes",
+  Q9:  "yes",
+  Q10: "yes",
+  Q11: "yes",
+  Q12: "yes",
+  Q14: "no",
+  Q15: "no",
+  Q16: "yes",
+  Q17: "no",
+  Q18: "no",
+  Q19: "yes",
+  Q28: "no",
 };
 
 const HIGH_RISK_DESCRIPTIONS: Record<string, string> = {
@@ -43,29 +43,25 @@ const HIGH_RISK_DESCRIPTIONS: Record<string, string> = {
   Q28: "Fire extinguishers or exits not accessible or not clearly marked",
 };
 
-/* -------------------------------------------------------------------------- */
-/*  Non-high rules: each triggered item adds 2 pts toward medium/low score    */
-/* -------------------------------------------------------------------------- */
-
 const NON_HIGH_RISK_RULES: Record<string, string> = {
-  Q1:  "yes", // Team staffing below required standard
-  Q2:  "yes", // Staff with <6 weeks machine operation experience
-  Q7:  "yes", // Temperature/humidity too high
-  Q13: "yes", // Obstructions in walkways/gangways
-  Q20: "no",  // Written Risk Prediction NOT done before restart
-  Q21: "yes", // Serious injury this or last shift
-  Q22: "yes", // First aid case in last 7 days
-  Q23: "yes", // Work at height ongoing
-  Q24: "yes", // Construction/modification work near line
-  Q25: "yes", // High-level cleaning in progress
-  Q26: "yes", // Water leaks or exposed hot surfaces
+  Q1:  "yes",
+  Q2:  "yes",
+  Q7:  "yes",
+  Q13: "yes",
+  Q20: "no",
+  Q21: "yes",
+  Q22: "yes",
+  Q23: "yes",
+  Q24: "yes",
+  Q25: "yes",
+  Q26: "yes",
 };
 
 /* -------------------------------------------------------------------------- */
 /*                           Access & hook helpers                            */
 /* -------------------------------------------------------------------------- */
 
-const isAdminOrHasAccessToImages =
+const isAdminOrCountryMatch =
   (): Access =>
   async ({ req }) => {
     const user = req.user as User | undefined;
@@ -84,12 +80,7 @@ const addFactory: CollectionBeforeChangeHook = ({ req, data }) => {
   return { ...data, factory_name: user?.factory_name };
 };
 
-/* -------------------------------------------------------------------------- */
-/*                          Main trigger hook                                 */
-/* -------------------------------------------------------------------------- */
-
 const addTriggerAndUser: CollectionBeforeChangeHook = ({ data }) => {
-  // Check for any HIGH-risk question triggered
   const triggeredHighRisks: string[] = [];
   for (const [q, triggerValue] of Object.entries(HIGH_RISK_RULES)) {
     if (data[q] === triggerValue) {
@@ -97,7 +88,6 @@ const addTriggerAndUser: CollectionBeforeChangeHook = ({ data }) => {
     }
   }
 
-  // Calculate non-high score (2 pts each)
   let nonHighScore = 0;
   for (const [q, riskValue] of Object.entries(NON_HIGH_RISK_RULES)) {
     if (data[q] === riskValue) {
@@ -131,12 +121,15 @@ const addUserToData: CollectionBeforeChangeHook = ({ req, data }) => {
 /*                              Collection                                    */
 /* -------------------------------------------------------------------------- */
 
-export const SmdQuestions: CollectionConfig = {
-  slug: "SmdQuestions",
+export const ProcessingLineInspections: CollectionConfig = {
+  slug: "ProcessingLineInspections",
+  labels: {
+    singular: "Processing Line Inspection",
+    plural: "Processing Line Inspections",
+  },
   admin: {
-    hidden: ({ user }) => user?.role !== "operator",
     useAsTitle: "Trigger",
-    description: "SMD Safety Inspection",
+    description: "Processing Line Safety Inspection",
   },
   hooks: {
     beforeChange: [addUser, addFactory, addTriggerAndUser, addUserToData],
@@ -144,8 +137,8 @@ export const SmdQuestions: CollectionConfig = {
   access: {
     read: async ({ req }) => {
       const referer = req.headers.get("referer");
-      if (!req.user || !referer?.includes("smd")) return true;
-      return await isAdminOrHasAccessToImages()({ req });
+      if (!req.user || !referer?.includes("processing-line")) return true;
+      return await isAdminOrCountryMatch()({ req });
     },
     update: ({ req: { user } }) => user?.role === "operator",
     delete: ({ req: { user } }) => user?.role === "operator",
@@ -159,13 +152,6 @@ export const SmdQuestions: CollectionConfig = {
       required: true,
       hasMany: true,
       admin: { condition: () => false },
-    },
-    {
-      name: "Line",
-      type: "relationship",
-      relationTo: "smd_line_name",
-      required: true,
-      hasMany: true,
     },
 
     /* ── Team Staffing & Competence ── */
@@ -459,7 +445,7 @@ export const SmdQuestions: CollectionConfig = {
       name: "reasonForScore",
       type: "textarea",
       label: "System Risk Reason",
-      admin: { condition: () => false }, // auto-generated, hidden from form
+      admin: { condition: () => false },
     },
     {
       name: "inspectorNote",

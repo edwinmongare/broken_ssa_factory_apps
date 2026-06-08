@@ -1,54 +1,38 @@
 import { getPayload } from "payload";
 import config from "@payload-config";
-import { notFound } from "next/navigation";
 
-interface PageProps {
-  params: Promise<{
-    smd_line_name: string;
-  }>;
-}
-
-interface Product {
-  Trigger: string;
+interface Inspection {
+  Trigger?: string;
   updatedAt?: string;
   user?: { email: string }[];
   reasonForScore?: string;
   inspectorNote?: string;
 }
 
-const Page = async ({ params }: PageProps) => {
-  const { smd_line_name } = await params;
-  const decodedLineName = decodeURIComponent(smd_line_name);
+const formatCreatedAt = (createdAt?: string): string => {
+  if (!createdAt) return "";
+  const date = new Date(createdAt);
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 
+const Page = async () => {
   const payload = await getPayload({ config });
 
-  const { docs: products } = await payload.find({
-    collection: "SmdQuestions",
+  const { docs } = await payload.find({
+    collection: "ProcessingLineInspections",
     limit: 1,
-    where: {
-      "Line.smd_line_name": {
-        equals: decodedLineName,
-      },
-    },
+    sort: "-updatedAt",
   });
 
-  const product: Product | undefined = products[0] as unknown as Product;
-  if (!product) return notFound();
-
-  const formatCreatedAt = (createdAt?: string): string => {
-    if (!createdAt) return "";
-    const date = new Date(createdAt);
-    return date.toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
-  const trigger = product?.Trigger ?? "unknown";
+  const inspection: Inspection | undefined = docs[0] as unknown as Inspection;
+  const trigger = inspection?.Trigger ?? "unknown";
   const capitalised = trigger.charAt(0).toUpperCase() + trigger.slice(1);
 
   let bgColor: string;
@@ -79,27 +63,24 @@ const Page = async ({ params }: PageProps) => {
       bgColor = "bg-gradient-to-b from-gray-600 to-gray-900";
       accentColor = "border-gray-300/40 bg-gray-900/40";
       icon = "❓";
-      panelTitle = "Risk Classification";
+      panelTitle = "No Inspection Recorded Yet";
   }
 
   const reasons =
-    trigger === "high" && product.reasonForScore
-      ? product.reasonForScore.split("; ").filter(Boolean)
+    trigger === "high" && inspection?.reasonForScore
+      ? inspection.reasonForScore.split("; ").filter(Boolean)
       : null;
 
   return (
     <div className={`${bgColor} min-h-screen flex flex-col`}>
-      {/* Header — Line Name */}
       <div className="p-8 pb-4">
         <p className="text-white/60 text-sm uppercase tracking-widest font-semibold mb-1">
-          SMD Safety Inspection
+          Safety Inspection
         </p>
-        <h1 className="text-5xl font-extrabold text-white">{decodedLineName}</h1>
+        <h1 className="text-5xl font-extrabold text-white">Processing Line</h1>
       </div>
 
-      {/* Main Content */}
       <div className="flex flex-col items-center justify-center flex-1 px-8 gap-8">
-        {/* Trigger Badge */}
         <div className="text-center">
           <div className="text-8xl font-extrabold text-white drop-shadow-2xl tracking-tight">
             {capitalised} Risk
@@ -109,21 +90,17 @@ const Page = async ({ params }: PageProps) => {
           </div>
         </div>
 
-        {/* Reason Panel */}
-        {product.reasonForScore && (
+        {inspection?.reasonForScore && (
           <div
             className={`w-full max-w-4xl rounded-2xl border backdrop-blur-sm ${accentColor} overflow-hidden shadow-2xl`}
           >
-            {/* Panel Header */}
             <div className="flex items-center gap-3 px-6 py-4 border-b border-white/10">
               <span className="text-3xl">{icon}</span>
               <h2 className="text-xl font-bold text-white">{panelTitle}</h2>
             </div>
 
-            {/* Panel Body */}
             <div className="px-6 py-5">
               {reasons ? (
-                /* HIGH: bullet list of each triggered issue */
                 <ul className="space-y-3">
                   {reasons.map((reason, i) => (
                     <li key={i} className="flex items-start gap-3">
@@ -133,21 +110,19 @@ const Page = async ({ params }: PageProps) => {
                   ))}
                 </ul>
               ) : (
-                /* MEDIUM / LOW: single summary line */
                 <p className="text-white text-lg leading-relaxed">
-                  {product.reasonForScore}
+                  {inspection.reasonForScore}
                 </p>
               )}
             </div>
 
-            {/* Inspector Note (if provided) */}
-            {product.inspectorNote && (
+            {inspection.inspectorNote && (
               <div className="px-6 py-4 border-t border-white/10 bg-black/20">
                 <p className="text-white/50 text-xs uppercase tracking-widest mb-2 font-semibold">
                   Inspector&apos;s Note
                 </p>
                 <p className="text-white text-lg italic leading-relaxed">
-                  &ldquo;{product.inspectorNote}&rdquo;
+                  &ldquo;{inspection.inspectorNote}&rdquo;
                 </p>
               </div>
             )}
@@ -155,15 +130,16 @@ const Page = async ({ params }: PageProps) => {
         )}
       </div>
 
-      {/* Footer — Date & Inspector */}
       <div className="p-8 pt-4">
         <div className="flex flex-col items-start gap-1">
           <p className="text-white/60 text-lg font-medium">
-            {formatCreatedAt(product.updatedAt)}
+            {inspection ? formatCreatedAt(inspection.updatedAt) : "No inspection recorded yet"}
           </p>
-          <p className="text-white text-3xl font-semibold">
-            By: {product.user?.[0]?.email ?? "Unknown"}
-          </p>
+          {inspection?.user?.[0]?.email && (
+            <p className="text-white text-3xl font-semibold">
+              By: {inspection.user[0].email}
+            </p>
+          )}
         </div>
       </div>
     </div>
