@@ -23,8 +23,10 @@ import { SMDQualityQuestions } from "./src/collections/Smd/SMD_Quality";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default buildConfig({
-  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || "",
+  serverURL: "",
   secret: process.env.PAYLOAD_SECRET || "",
+  cors: "*",
+  csrf: [],
   collections: [
     Users,
     Factories,

@@ -12,6 +12,8 @@ const Navbar = async () => {
   const payload = await getPayload({ config });
   const { user } = await payload.auth({ headers });
 
+  console.log("[Navbar] user:", user ? { id: user.id, email: user.email } : null);
+
   return (
     <div className="bg-white sticky z-50 top-0 inset-x-0 h-16">
       <header className="relative bg-white">
