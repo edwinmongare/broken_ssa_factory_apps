@@ -3,7 +3,6 @@ import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import path from "path";
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
-import sharp from "sharp";
 
 import { Users } from "./src/collections/Users";
 import { Factories } from "./src/collections/Factories";
@@ -38,7 +37,6 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.MONGODB_URL || "",
   }),
-  sharp,
   typescript: {
     outputFile: path.resolve(dirname, "src/payload-types.ts"),
   },
