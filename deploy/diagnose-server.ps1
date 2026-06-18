@@ -17,7 +17,7 @@ param(
   [string]$NodePath   = "C:\Program Files\nodejs\node.exe"
 )
 
-function H($m) { Write-Host "`n=== $m ===" -ForegroundColor Cyan }
+function Section($m) { Write-Host "`n=== $m ===" -ForegroundColor Cyan }
 function OK($m) { Write-Host "  [OK]  $m" -ForegroundColor Green }
 function BAD($m){ Write-Host "  [!!]  $m" -ForegroundColor Red }
 function INFO($m){ Write-Host "  $m" -ForegroundColor Gray }
@@ -25,7 +25,7 @@ function INFO($m){ Write-Host "  $m" -ForegroundColor Gray }
 Import-Module WebAdministration -ErrorAction SilentlyContinue
 
 # 1. IIS + HttpPlatformHandler module ------------------------------------------
-H "1. HttpPlatformHandler module"
+Section "1. HttpPlatformHandler module"
 $hph = Get-WebGlobalModule -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*httpPlatform*' }
 if ($hph) {
   OK "Installed: $($hph.Name)  ($($hph.Image))"
@@ -37,7 +37,7 @@ if ($hph) {
 }
 
 # 2. Node runtime --------------------------------------------------------------
-H "2. Node.js"
+Section "2. Node.js"
 if (Test-Path $NodePath) {
   OK "node.exe found at $NodePath  (version: $(& $NodePath -v))"
 } else {
@@ -47,7 +47,7 @@ if (Test-Path $NodePath) {
 }
 
 # 3. Deploy folder contents ----------------------------------------------------
-H "3. Deploy folder: $DeployPath"
+Section "3. Deploy folder: $DeployPath"
 if (-not (Test-Path $DeployPath)) {
   BAD "Deploy folder does not exist. The deploy script did not place files here."
 } else {
@@ -60,7 +60,7 @@ if (-not (Test-Path $DeployPath)) {
 }
 
 # 4. .env contents (keys only, never prints secret values) ---------------------
-H "4. .env keys (values hidden)"
+Section "4. .env keys (values hidden)"
 $envFile = Join-Path $DeployPath ".env"
 if (Test-Path $envFile) {
   $keys = (Get-Content $envFile | Where-Object { $_ -match '^\s*[A-Za-z_]' }) | ForEach-Object { ($_ -split '=')[0].Trim() }
@@ -74,7 +74,7 @@ if (Test-Path $envFile) {
 }
 
 # 5. web.config processPath ----------------------------------------------------
-H "5. web.config processPath"
+Section "5. web.config processPath"
 $wc = Join-Path $DeployPath "web.config"
 if (Test-Path $wc) {
   $pp = ([regex]'processPath="([^"]*)"').Match((Get-Content $wc -Raw)).Groups[1].Value
@@ -84,7 +84,7 @@ if (Test-Path $wc) {
 }
 
 # 6. App pool + site -----------------------------------------------------------
-H "6. IIS site + app pool"
+Section "6. IIS site + app pool"
 if (Test-Path "IIS:\AppPools\$AppPool") {
   $ap = Get-Item "IIS:\AppPools\$AppPool"
   OK "App pool '$AppPool' state=$($ap.state) managedRuntime='$($ap.managedRuntimeVersion)' startMode=$($ap.startMode)"
@@ -97,12 +97,12 @@ if (Test-Path "IIS:\Sites\$SiteName") {
 } else { BAD "Site '$SiteName' does not exist." }
 
 # 7. Tail the node startup log -------------------------------------------------
-H "7. logs\node.log (last 40 lines)"
+Section "7. logs\node.log (last 40 lines)"
 $log = Join-Path $DeployPath "logs\node.log"
 if (Test-Path $log) { Get-Content $log -Tail 40 } else { INFO "No node.log yet (process may never have started)." }
 
 # 8. Controlled manual run: the real startup error -----------------------------
-H "8. Test run: node server.js (captures the real crash, then stops)"
+Section "8. Test run: node server.js (captures the real crash, then stops)"
 if ((Test-Path $NodePath) -and (Test-Path (Join-Path $DeployPath "server.js"))) {
   $testPort = 38123
   $out = Join-Path $env:TEMP "fs_node_test_out.txt"
@@ -128,5 +128,5 @@ if ((Test-Path $NodePath) -and (Test-Path (Join-Path $DeployPath "server.js"))) 
   INFO "Skipped (node.exe or server.js missing)."
 }
 
-H "Done"
+Section "Done"
 Write-Host "Fix the first [!!] lines above, then re-run deploy.ps1." -ForegroundColor Cyan
