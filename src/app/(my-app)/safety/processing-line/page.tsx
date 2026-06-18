@@ -1,5 +1,6 @@
-import { getPayload } from "payload";
-import config from "@payload-config";
+"use client";
+
+import { useEffect, useState } from "react";
 
 interface Inspection {
   Trigger?: string;
@@ -22,16 +23,39 @@ const formatCreatedAt = (createdAt?: string): string => {
   });
 };
 
-const Page = async () => {
-  const payload = await getPayload({ config });
+export default function Page() {
+  const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  const { docs } = await payload.find({
-    collection: "ProcessingLineInspections",
-    limit: 1,
-    sort: "-updatedAt",
-  });
+  useEffect(() => {
+    let active = true;
 
-  const inspection: Inspection | undefined = docs[0] as unknown as Inspection;
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch(
+          "/api/ProcessingLineInspections?limit=1&sort=-updatedAt&depth=1",
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+        if (active) {
+          setInspection((data?.docs?.[0] as Inspection) ?? null);
+          setLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching inspection:", error);
+        if (active) setLoaded(true);
+      }
+    };
+
+    fetchLatest();
+    const intervalId = setInterval(fetchLatest, 5000); // real-time: refresh every 5s
+
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
   const trigger = inspection?.Trigger ?? "unknown";
   const capitalised = trigger.charAt(0).toUpperCase() + trigger.slice(1);
 
@@ -63,7 +87,7 @@ const Page = async () => {
       bgColor = "bg-gradient-to-b from-gray-600 to-gray-900";
       accentColor = "border-gray-300/40 bg-gray-900/40";
       icon = "❓";
-      panelTitle = "No Inspection Recorded Yet";
+      panelTitle = loaded ? "No Inspection Recorded Yet" : "Loading…";
   }
 
   const reasons =
@@ -133,7 +157,11 @@ const Page = async () => {
       <div className="p-8 pt-4">
         <div className="flex flex-col items-start gap-1">
           <p className="text-white/60 text-lg font-medium">
-            {inspection ? formatCreatedAt(inspection.updatedAt) : "No inspection recorded yet"}
+            {inspection
+              ? formatCreatedAt(inspection.updatedAt)
+              : loaded
+                ? "No inspection recorded yet"
+                : ""}
           </p>
           {inspection?.user?.[0]?.email && (
             <p className="text-white text-3xl font-semibold">
@@ -144,6 +172,4 @@ const Page = async () => {
       </div>
     </div>
   );
-};
-
-export default Page;
+}

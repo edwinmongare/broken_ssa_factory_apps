@@ -15,7 +15,7 @@ export default function HomePage() {
       <MaxWidthWrapper>
         <div className="flex flex-wrap gap-5 py-20 antialiased justify-center">
           <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/3 xl:w-1/3">
-            <Link href="/safety">
+            <Link href="/safety/processing-line">
               <GlowingStarsBackgroundCard>
                 <GlowingStarsTitle>Safety Trigger</GlowingStarsTitle>
                 <div className="flex justify-between items-end">

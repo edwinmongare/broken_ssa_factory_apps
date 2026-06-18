@@ -1,4 +1,4 @@
-import type { Access, CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import type { User } from "@/payload-types";
 
 /* -------------------------------------------------------------------------- */
@@ -60,15 +60,6 @@ const NON_HIGH_RISK_RULES: Record<string, string> = {
 /* -------------------------------------------------------------------------- */
 /*                           Access & hook helpers                            */
 /* -------------------------------------------------------------------------- */
-
-const isAdminOrCountryMatch =
-  (): Access =>
-  async ({ req }) => {
-    const user = req.user as User | undefined;
-    if (!user) return false;
-    if (user.role === "superadmin") return true;
-    return { country: { equals: user.country } };
-  };
 
 const addUser: CollectionBeforeChangeHook = ({ req, data }) => {
   const user = req.user as User | null;
@@ -135,11 +126,7 @@ export const ProcessingLineInspections: CollectionConfig = {
     beforeChange: [addUser, addFactory, addTriggerAndUser, addUserToData],
   },
   access: {
-    read: async ({ req }) => {
-      const referer = req.headers.get("referer");
-      if (!req.user || !referer?.includes("processing-line")) return true;
-      return await isAdminOrCountryMatch()({ req });
-    },
+    read: () => true,
     update: ({ req: { user } }) => user?.role === "operator",
     delete: ({ req: { user } }) => user?.role === "operator",
     create: ({ req: { user } }) => user?.role === "operator",
